@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+use Mgcodeur\LaravelPermissionPlugin\PermissionMigrationPlugin;
+
+return new class extends PermissionMigrationPlugin
+{
+    public function up(): void {}
+
+    public function down(): void {}
+};
