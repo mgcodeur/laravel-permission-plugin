@@ -43,12 +43,12 @@ class RollbackPermissionPluginCommand extends Command
 
                 return self::SUCCESS;
             }
-            $targets = array_map(fn($batch) => $batch['filename'], $lastBatch);
+            $targets = array_map(fn ($batch) => $batch['filename'], $lastBatch);
         }
 
         foreach ($targets as $filename) {
-            $filePath = $path . DIRECTORY_SEPARATOR . $filename;
-            $this->line('Rolling back: ' . $filename);
+            $filePath = $path.DIRECTORY_SEPARATOR.$filename;
+            $this->line('Rolling back: '.$filename);
 
             if (! file_exists($filePath)) {
                 $this->warn("File missing. Removing log only: {$filename}");

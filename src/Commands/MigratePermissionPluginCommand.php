@@ -2,9 +2,9 @@
 
 namespace Mgcodeur\LaravelPermissionPlugin\Commands;
 
-use Illuminate\Support\Str;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Str;
 use Mgcodeur\LaravelPermissionPlugin\Repositories\PermissionMigrationRepository;
 
 class MigratePermissionPluginCommand extends Command
@@ -24,12 +24,12 @@ class MigratePermissionPluginCommand extends Command
         }
 
         $allFiles = collect($files->files($path))
-            ->filter(fn($f) => Str::endsWith($f->getFilename(), '.php'))
-            ->sortBy(fn($f) => $f->getFilename())
+            ->filter(fn ($f) => Str::endsWith($f->getFilename(), '.php'))
+            ->sortBy(fn ($f) => $f->getFilename())
             ->values();
 
         $ran = $repo->getRanFilenames();
-        $pending = $allFiles->reject(fn($f) => $ran->contains($f->getFilename()))->values();
+        $pending = $allFiles->reject(fn ($f) => $ran->contains($f->getFilename()))->values();
 
         if ($pending->isEmpty()) {
             $this->info('Nothing to migrate.');
@@ -43,7 +43,7 @@ class MigratePermissionPluginCommand extends Command
         foreach ($pending as $file) {
             /** @var \SplFileInfo $file */
             $filename = $file->getFilename();
-            $this->line('Migrating: ' . $filename);
+            $this->line('Migrating: '.$filename);
 
             if (! $pretend) {
                 $migration = require $file->getRealPath();

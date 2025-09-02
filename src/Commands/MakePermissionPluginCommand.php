@@ -24,8 +24,8 @@ class MakePermissionPluginCommand extends Command
         }
 
         $timestamp = date('Y_m_d_His');
-        $filename = "{$timestamp}_" . Str::snake($name) . '.php';
-        $fullPath = $path . DIRECTORY_SEPARATOR . $filename;
+        $filename = "{$timestamp}_".Str::snake($name).'.php';
+        $fullPath = $path.DIRECTORY_SEPARATOR.$filename;
 
         if ($files->exists($fullPath) && ! $this->option('force')) {
             $this->error("File already exists: {$fullPath}");
@@ -34,10 +34,10 @@ class MakePermissionPluginCommand extends Command
         }
 
         $stubPathCandidates = [
-            __DIR__ . '/../../stubs/permission.stub',
+            __DIR__.'/../../stubs/permission.stub',
             base_path('stubs/permission.stub'),
         ];
-        $stubPath = collect($stubPathCandidates)->first(fn($p) => $files->exists($p));
+        $stubPath = collect($stubPathCandidates)->first(fn ($p) => $files->exists($p));
         if (! $stubPath) {
             $this->error('permission.stub not found.');
 

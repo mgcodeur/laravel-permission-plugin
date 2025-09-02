@@ -16,11 +16,13 @@ abstract class PermissionMigrationPlugin
     protected ?string $guard = null;
 
     abstract public function up(): void;
+
     abstract public function down(): void;
 
     public function guard(?string $guard): static
     {
         $this->guard = $guard;
+
         return $this;
     }
 
@@ -31,6 +33,7 @@ abstract class PermissionMigrationPlugin
                 $this->actions['create'][] = (string) $name;
             }
         }
+
         return $this;
     }
 
@@ -41,6 +44,7 @@ abstract class PermissionMigrationPlugin
                 $this->actions['revoke'][] = (string) $name;
             }
         }
+
         return $this;
     }
 
@@ -51,23 +55,24 @@ abstract class PermissionMigrationPlugin
                 $this->actions['delete'][] = (string) $name;
             }
         }
+
         return $this;
     }
-
 
     protected function for(string|array ...$roles): void
     {
         $roles = collect($roles)->flatten()->all();
 
         $permissionModel = config('permission.models.permission');
-        $roleModel       = config('permission.models.role');
-        $guard           = $this->guard ?? config('permission.defaults.guard', 'web');
+        $roleModel = config('permission.models.role');
+        $guard = $this->guard ?? config('permission.defaults.guard', 'web');
 
         DB::transaction(function () use ($permissionModel, $roleModel, $guard, $roles) {
             $roleModels = collect($roles)->mapWithKeys(function ($roleName) use ($roleModel, $guard) {
                 $role = method_exists($roleModel, 'findOrCreate')
                     ? $roleModel::findOrCreate((string) $roleName, $guard)
                     : $roleModel::firstOrCreate(['name' => (string) $roleName, 'guard_name' => $guard]);
+
                 return [$role->name => $role];
             });
 

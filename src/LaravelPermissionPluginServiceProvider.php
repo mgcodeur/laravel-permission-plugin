@@ -27,7 +27,7 @@ class LaravelPermissionPluginServiceProvider extends PackageServiceProvider
                 LaravelPermissionPluginCommand::class,
                 MakePermissionPluginCommand::class,
                 MigratePermissionPluginCommand::class,
-                RollbackPermissionPluginCommand::class
+                RollbackPermissionPluginCommand::class,
             ]);
     }
 }

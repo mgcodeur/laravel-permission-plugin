@@ -48,7 +48,7 @@ final class PermissionMigrationRepository
             ->where('batch', $last)
             ->orderByDesc('id')
             ->get(['filename', 'batch'])
-            ->map(fn($r) => ['filename' => (string) $r->filename, 'batch' => (int) $r->batch])
+            ->map(fn ($r) => ['filename' => (string) $r->filename, 'batch' => (int) $r->batch])
             ->all();
     }
 
@@ -59,7 +59,7 @@ final class PermissionMigrationRepository
             ->orderByDesc('id')
             ->limit($steps)
             ->pluck('filename')
-            ->map(fn($f) => (string) $f)
+            ->map(fn ($f) => (string) $f)
             ->all();
     }
 }
