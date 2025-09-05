@@ -80,7 +80,7 @@ abstract class PermissionMigrationPlugin
 
     protected function for(string|array ...$roles): static
     {
-        $this->roles = collect($roles)->flatten()->map(fn($r) => (string) $r)->values()->all();
+        $this->roles = collect($roles)->flatten()->map(fn ($r) => (string) $r)->values()->all();
 
         return $this;
     }
