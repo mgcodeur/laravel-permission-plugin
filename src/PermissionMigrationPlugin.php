@@ -8,12 +8,14 @@ use Spatie\Permission\PermissionRegistrar;
 abstract class PermissionMigrationPlugin
 {
     protected array $actions = [
-        'create' => [],
+        'add' => [],
         'revoke' => [],
         'delete' => [],
     ];
 
     protected ?string $guard = null;
+
+    protected array $resources = [];
 
     abstract public function up(): void;
 
@@ -26,11 +28,27 @@ abstract class PermissionMigrationPlugin
         return $this;
     }
 
-    protected function createPermissions(string|array ...$permissions): static
+    public function setResource(string|array ...$resources): static
+    {
+        foreach ($resources as $item) {
+            foreach ((array) $item as $res) {
+                $this->resources[] = (string) $res;
+            }
+        }
+
+        return $this;
+    }
+
+    public function getResources(): array
+    {
+        return $this->resources;
+    }
+
+    protected function givePermissions(string|array ...$permissions): static
     {
         foreach ($permissions as $item) {
             foreach ((array) $item as $name) {
-                $this->actions['create'][] = (string) $name;
+                $this->actions['add'][] = (string) $name;
             }
         }
 
@@ -66,8 +84,9 @@ abstract class PermissionMigrationPlugin
         $permissionModel = config('permission.models.permission');
         $roleModel = config('permission.models.role');
         $guard = $this->guard ?? config('permission.defaults.guard', 'web');
+        $resources = array_values(array_unique($this->resources));
 
-        DB::transaction(function () use ($permissionModel, $roleModel, $guard, $roles) {
+        DB::transaction(function () use ($permissionModel, $roleModel, $guard, $roles, $resources) {
             $roleModels = collect($roles)->mapWithKeys(function ($roleName) use ($roleModel, $guard) {
                 $role = method_exists($roleModel, 'findOrCreate')
                     ? $roleModel::findOrCreate((string) $roleName, $guard)
@@ -76,35 +95,87 @@ abstract class PermissionMigrationPlugin
                 return [$role->name => $role];
             });
 
-            foreach ($this->actions['create'] as $name) {
-                $perm = method_exists($permissionModel, 'findOrCreate')
-                    ? $permissionModel::findOrCreate($name, $guard)
-                    : $permissionModel::firstOrCreate(['name' => $name, 'guard_name' => $guard]);
+            // ADD
+            foreach ($this->actions['add'] as $name) {
+                if (! empty($resources)) {
+                    foreach ($resources as $res) {
+                        $perm = $permissionModel::firstOrCreate([
+                            'name' => $name,
+                            'guard_name' => $guard,
+                            'resource' => $res,
+                        ]);
 
-                foreach ($roleModels as $role) {
-                    $role->givePermissionTo($perm);
-                }
-            }
+                        foreach ($roleModels as $role) {
+                            $role->givePermissionTo($perm);
+                        }
+                    }
+                } else {
+                    $perm = method_exists($permissionModel, 'findOrCreate')
+                        ? $permissionModel::findOrCreate($name, $guard)
+                        : $permissionModel::firstOrCreate(['name' => $name, 'guard_name' => $guard]);
 
-            foreach ($this->actions['revoke'] as $name) {
-                $perm = $permissionModel::where('name', $name)->where('guard_name', $guard)->first();
-                if ($perm) {
                     foreach ($roleModels as $role) {
-                        $role->revokePermissionTo($perm);
+                        $role->givePermissionTo($perm);
                     }
                 }
             }
 
+            // REVOKE
+            foreach ($this->actions['revoke'] as $name) {
+                if (! empty($resources)) {
+                    foreach ($resources as $res) {
+                        $perm = $permissionModel::where('name', $name)
+                            ->where('guard_name', $guard)
+                            ->where('resource', $res)
+                            ->first();
+
+                        if ($perm) {
+                            foreach ($roleModels as $role) {
+                                $role->revokePermissionTo($perm);
+                            }
+                        }
+                    }
+                } else {
+                    $perm = $permissionModel::where('name', $name)
+                        ->where('guard_name', $guard)
+                        ->first();
+
+                    if ($perm) {
+                        foreach ($roleModels as $role) {
+                            $role->revokePermissionTo($perm);
+                        }
+                    }
+                }
+            }
+
+            // DELETE
             foreach ($this->actions['delete'] as $name) {
-                $perm = $permissionModel::where('name', $name)->where('guard_name', $guard)->first();
-                if ($perm) {
-                    $perm->delete();
+                if (! empty($resources)) {
+                    foreach ($resources as $res) {
+                        $perm = $permissionModel::where('name', $name)
+                            ->where('guard_name', $guard)
+                            ->where('resource', $res)
+                            ->first();
+
+                        if ($perm) {
+                            $perm->delete();
+                        }
+                    }
+                } else {
+                    $perm = $permissionModel::where('name', $name)
+                        ->where('guard_name', $guard)
+                        ->first();
+
+                    if ($perm) {
+                        $perm->delete();
+                    }
                 }
             }
         });
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        $this->actions = ['create' => [], 'revoke' => [], 'delete' => []];
+        $this->actions = ['add' => [], 'revoke' => [], 'delete' => []];
+        $this->resources = [];
     }
 }
