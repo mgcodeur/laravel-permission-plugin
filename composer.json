@@ -19,7 +19,7 @@
         "php": "^8.4",
         "illuminate/contracts": "^11.0||^12.0",
         "spatie/laravel-package-tools": "^1.16",
-        "spatie/laravel-permission": "^6.21"
+        "spatie/laravel-permission": "^7.2"
     },
     "suggest": {
         "spatie/laravel-permission": "Core package to manage roles & permissions. This plugin extends it."
